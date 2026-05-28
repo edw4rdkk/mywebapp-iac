@@ -1,0 +1,42 @@
+---
+- name: Install PostgreSQL
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+      - python3-psycopg2
+    state: present
+    update_cache: true
+
+- name: Ensure PostgreSQL is running
+  ansible.builtin.systemd:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Configure PostgreSQL to listen on all interfaces
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/16/main/postgresql.conf
+    regexp: "^#?listen_addresses"
+    line: "listen_addresses = '*'"
+  notify: Restart PostgreSQL
+
+- name: Allow worker to connect to database
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/16/main/pg_hba.conf
+    line: "host    mywebapp    mywebapp    {{ hostvars['worker']['ansible_host'] }}/32    md5"
+  notify: Restart PostgreSQL
+
+- name: Create database user
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: mywebapp
+    password: mywebapp_secret
+    state: present
+
+- name: Create database
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: mywebapp
+    owner: mywebapp
+    state: present
