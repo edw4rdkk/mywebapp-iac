@@ -1,0 +1,14 @@
+#cloud-config
+users:
+  - name: ansible
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+  - name: teacher
+    sudo: ALL=(ALL:ALL) ALL
+    shell: /bin/bash
+    lock_passwd: false
+package_update: true
+packages:
+  - openssh-server
