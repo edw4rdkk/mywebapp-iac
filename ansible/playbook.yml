@@ -1,0 +1,15 @@
+---
+- name: Configure database server
+  hosts: db
+  become: true
+  roles:
+    - common
+    - database
+
+- name: Configure worker server
+  hosts: workers
+  become: true
+  roles:
+    - common
+    - app
+    - nginx
