@@ -1,0 +1,117 @@
+---
+- name: Install Node.js repository
+  ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  args:
+    creates: /usr/share/keyrings/nodesource.gpg
+
+- name: Install Node.js
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: true
+
+- name: Create app user
+  ansible.builtin.user:
+    name: app
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: Create student user
+  ansible.builtin.user:
+    name: student
+    shell: /bin/bash
+    create_home: true
+
+- name: Create operator user
+  ansible.builtin.user:
+    name: operator
+    shell: /bin/bash
+    create_home: true
+
+- name: Set operator password
+  ansible.builtin.user:
+    name: operator
+    password: "{{ '12345678' | password_hash('sha512') }}"
+
+- name: Create app directory
+  ansible.builtin.file:
+    path: /opt/mywebapp
+    state: directory
+    owner: app
+    group: app
+    mode: "0755"
+
+- name: Copy package.json
+  ansible.builtin.copy:
+    src: app/package.json
+    dest: /opt/mywebapp/package.json
+    owner: app
+    group: app
+  notify: Restart mywebapp
+
+- name: Copy package-lock.json
+  ansible.builtin.copy:
+    src: app/package-lock.json
+    dest: /opt/mywebapp/package-lock.json
+    owner: app
+    group: app
+  notify: Restart mywebapp
+
+- name: Copy application source
+  ansible.builtin.copy:
+    src: app/src/
+    dest: /opt/mywebapp/src/
+    owner: app
+    group: app
+  notify: Restart mywebapp
+
+- name: Install npm dependencies
+  community.general.npm:
+    path: /opt/mywebapp
+    production: true
+    state: present
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: /etc/mywebapp
+    state: directory
+    mode: "0755"
+
+- name: Deploy application config
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: /etc/mywebapp/config.json
+    owner: root
+    group: app
+    mode: "0640"
+  notify: Restart mywebapp
+
+- name: Deploy systemd service
+  ansible.builtin.template:
+    src: mywebapp.service.j2
+    dest: /etc/systemd/system/mywebapp.service
+  notify:
+    - Reload systemd
+    - Restart mywebapp
+
+- name: Deploy operator sudoers
+  ansible.builtin.copy:
+    src: operator-sudoers
+    dest: /etc/sudoers.d/operator
+    mode: "0440"
+    validate: "visudo -cf %s"
+
+- name: Enable and start mywebapp
+  ansible.builtin.systemd:
+    name: mywebapp
+    state: started
+    enabled: true
+
+- name: Create gradebook
+  ansible.builtin.copy:
+    content: "13"
+    dest: /home/student/gradebook
+    owner: student
+    group: student
+    mode: "0644"

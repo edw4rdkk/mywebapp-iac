@@ -1,0 +1,17 @@
+[Unit]
+Description=Task Tracker Web Application
+After=network.target
+
+[Service]
+Type=simple
+User=app
+Group=app
+WorkingDirectory=/opt/mywebapp
+Environment=CONFIG_PATH=/etc/mywebapp/config.json
+ExecStartPre=/usr/bin/node /opt/mywebapp/src/migrate.js
+ExecStart=/usr/bin/node /opt/mywebapp/src/app.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

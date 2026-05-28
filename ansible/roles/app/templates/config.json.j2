@@ -1,0 +1,13 @@
+{
+  "app": {
+    "host": "127.0.0.1",
+    "port": 8000
+  },
+  "db": {
+    "host": "{{ hostvars['db']['ansible_host'] }}",
+    "port": 5432,
+    "user": "mywebapp",
+    "password": "mywebapp_secret",
+    "name": "mywebapp"
+  }
+}

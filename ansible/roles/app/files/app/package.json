@@ -1,0 +1,24 @@
+{
+  "name": "mywebapp",
+  "version": "1.0.0",
+  "description": "Task Tracker — web service for tracking tasks",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "migrate": "node src/migrate.js",
+    "lint": "eslint src/",
+    "test": "jest --coverage --forceExit --detectOpenHandles"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.21.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.4.0",
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
+  }
+}
